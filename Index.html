@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swaralipi Matrix</title>
+  <meta name="description" content="Explore an interactive Swaralipi Raga repository and sheet music archive. Search, filter, and practice Hindustani/Carnatic Classical, Bhajans, and compositions with dynamic Taala notation Matrix layouts.">
+
+  <base target="_top">
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 25px; background: #fafafa; color: #1e293b; }
+  
+  /* =======================================================
+     RESPONSIVE CONTROL STRIP (RESTORES ORIGINAL WRAPPING)
+     ======================================================= */
+  .top-bar { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 16px;                   
+    flex-wrap: wrap;             /* RESTORED: Allows elements to wrap exactly like they used to on mobile! */
+    background: #ffffff; 
+    padding: 16px 24px;          
+    border-radius: 10px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+    margin-bottom: 25px; 
+    border: 1px solid #f1f5f9; 
+  }
+  
+  .dropdown-group { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  
+  label { font-weight: 600; font-size: 14px; color: #475569; }
+  select { padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 500; outline: none; background: #fff; cursor: pointer; }
+  
+  /* Title segment with integrated vertical divider accent stroke line */
+  .project-app-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+    padding-right: 20px;
+    margin-right: 15px; 
+    border-right: 2px solid #e2e8f0; 
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Search Input Layout Rules */
+  .search-input-wrapper {
+    flex-grow: 1;
+    min-width: 140px;
+  }
+
+  .search-input-wrapper input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-weight: 500;
+    outline: none;
+    background: #f8fafc;
+    box-sizing: border-box;
+  }
+
+  /* =======================================================
+     LAPTOP ONLY SCREEN FIX (ENFORCES SINGLE ROW ON WIDE DISPLAYS)
+     ======================================================= */
+  @media (min-width: 911px) {
+    .top-bar {
+      flex-wrap: nowrap !important; /* Locks into a clean single row ONLY on laptops */
+    }
+    .search-input-wrapper {
+      max-width: 200px;            /* Keeps it compact next to the title on wide screens */
+      margin-right: auto;          /* Gracefully pushes all dropdown packages to the far right side */
+    }
+  }
+
+  .song-container { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 2px; 
+    background: #fff; 
+    padding: 25px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04); 
+    border: 1px solid #e2e8f0; 
+    width: 100%; 
+    box-sizing: border-box; 
+  }
+  
+  .title-banner-wrapper { 
+    text-align: center; 
+    margin-bottom: 22px; 
+    border-bottom: 2px solid #f1f5f9; 
+    padding-bottom: 14px; 
+    width: 100%; 
+    box-sizing: border-box;
+  }
+  
+  .title-line-main { 
+    font-size: 19px; 
+    font-weight: 600; 
+    color: #0f172a; 
+    letter-spacing: -0.2px;
+  }
+  
+  .title-line-secondary { 
+    font-size: 14px; 
+    font-weight: 600; 
+    color: #991b1b; 
+    margin-top: 8px; 
+    letter-spacing: 0.3px;
+    line-height: 1.6;
+  }
+  
+  .composer-sub { font-size: 18px; font-weight: 500; color: #64748b; }
+  
+  /* =======================================================
+     UNIFIED RESPONSIVE GRID BLOCK LAYOUT SYSTEM
+     ======================================================= */
+  .notation-row, .swara-sahithya-pair { 
+    display: grid; 
+    grid-template-columns: repeat(var(--taala-cols, 32), minmax(45px, 1fr)); 
+    gap: 4px; 
+    width: 100%; 
+    box-sizing: border-box;
+    margin-bottom: 15px;
+  }
+
+  /* ✅ FIXED: Structural styling for nested script layout blocks */
+  .beat-column-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+  }
+  
+  .cell { 
+    box-sizing: border-box;
+    border: 1px solid #f1f5f9; 
+    padding: 10px 2px; 
+    text-align: center; 
+    font-size: 14px; 
+    background: #fff; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 38px; 
+    border-radius: 4px; 
+    width: 100%;
+  }
+  
+  .header-cell { background: #f8fafc; font-weight: 700; color: #64748b; border-bottom: 2px solid #cbd5e1; font-size: 13px; }
+  
+  .swara-cell { font-weight: 700; background: #fffdf5; border-color: #fef08a; font-size: 14px; }
+  .octave-lower  { color: #f87171; } 
+  .octave-middle { color: #dc2626; } 
+  .octave-upper  { color: #7f1d1d; } 
+  
+  .lyric-cell { font-weight: 500; color: #0284c7; background: #f0f9ff; border-color: #bae6fd; }
+  
+  .heading-row { 
+    background: #f0fdf4; 
+    color: #166534; 
+    font-weight: 600; 
+    padding: 14px 18px; 
+    text-align: left; 
+    border-radius: 8px; 
+    margin-top: 15px; 
+    margin-bottom: 5px; 
+    font-size: 15px; 
+    border-left: 4px solid #22c55e; 
+    width: 100%; 
+    box-sizing: border-box; 
+  }
+
+  /* =======================================================
+     UNIFIED MULTIPLE BREAKPOINTS - ENFORCES CYCLIC FOLD LIMITS
+     ======================================================= */
+  @media (max-width: 1660px) {
+    .notation-row, .swara-sahithya-pair {
+      grid-template-columns: repeat(calc(var(--fold-cols, 8) * 3), minmax(45px, 1fr)) !important;
+    }
+  }
+
+  @media (max-width: 1290px) {
+    .notation-row, .swara-sahithya-pair {
+      grid-template-columns: repeat(calc(var(--fold-cols, 8) * 2), minmax(45px, 1fr)) !important;
+    }
+  }
+
+  /* =======================================================
+     UNIFIED MOBILE PORTRAIT SCREEN ADJUSTMENTS (MAX-WIDTH: 910px)
+     ====================================================== */
+  @media (max-width: 910px) {
+    body { margin: 6px; } 
+    .song-container { padding: 8px; }
+
+    .top-bar { 
+      padding: 12px; 
+      gap: 10px; 
+      margin-bottom: 12px; 
+    }
+    
+    .project-app-title {
+      font-size: 16px !important;
+      padding-right: 0 !important;
+      margin-right: 0 !important;
+      border-right: none !important;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .dropdown-group { 
+      display: flex;
+      justify-content: space-between; 
+      width: 100%; 
+    }
+    .dropdown-group select { 
+      flex-grow: 1; 
+      max-width: 65%; 
+    } 
+
+    /* ✅ FORCE WRAPPING ENGINE: Dissolves containers so cells snap into clean blocks of 8 */
+    .notation-row, .swara-sahithya-pair {
+      display: grid !important;
+      grid-template-columns: repeat(8, minmax(0, 1fr)) !important; 
+      gap: 4px !important; 
+      width: 100% !important;
+    }
+    
+    /* Forces the inner wrapped cells to stack cleanly */
+    .beat-column-pair {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+    }
+
+    .cell { 
+      font-size: 14px !important; /* Forces readable font sizing on mobile */
+      padding: 10px 0px !important; 
+      min-height: 38px !important; 
+      width: 100% !important;
+    }
+  }
+
+  /* ✅ FIXED BREAKPOINT: Ensures laptop-resize triggers 8-column grouping when scaled down */
+  @media (max-width: 950px) and (orientation: landscape) {
+    .song-container { padding: 10px; }
+    .notation-row, .swara-sahithya-pair {
+      grid-template-columns: repeat(16, 1fr) !important; 
+      gap: 3px;
+    }
+  }
+
+  .cell.tala-major-boundary { border-right: 4px solid #1e293b !important; }
+  .cell.tala-internal-division { border-right: 2px dashed #64748b !important; }
+
+  /* =======================================================
+     FORCE ABSOLUTE REMOVAL OF THE NETLIFY PREVIEW DRAWER BAR
+     ======================================================= */
+  iframe[src*="netlify"], 
+  .netlify-drawer, 
+  #netlify-deploy-preview-iframe,
+  [id*="netlify-drawer"],
+  [class*="netlify-drawer"] { 
+    display: none !important; 
+    visibility: hidden !important; 
+    pointer-events: none !important; 
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+  }
+</style>
+</head>
+
+<body>
+<div class="top-bar">
+    <div class="project-app-title">Swaralipi Matrix</div>
+
+    <div class="search-input-wrapper">
+      <input type="text" id="songSearchInput" list="songSuggestionsList" placeholder="🔍 Search song name..." autocomplete="off">
+      <datalist id="songSuggestionsList"></datalist>
+    </div>
+
+    <div class="dropdown-group">
+      <label>Category: </label>
+      <!-- FIXED: Linked manual dropdown adjustments to the optimized memory manager -->
+      <select id="categoryDropdown" onchange="handleCategoryDropdownChange()"></select>
+    </div>
+
+    <div class="dropdown-group">
+      <label>Keerthan/Song: </label>
+      <!-- FIXED: Linked song switches directly to standalone API pipeline -->
+      <select id="songDropdown" onchange="handleSongDropdownChange()"></select>
+    </div>
+    
+    <div class="dropdown-group">
+      <label>Display Language: </label>
+      <!-- ✅ FIXED: Tied onchange directly to the ultra-fast client rendering wrapper -->
+      <select id="langDropdown" onchange="handleLanguageDropdownChange(this.value)">
+        <option value="English">English (Phonetic)</option>
+        <option value="Telugu" selected>తెలుగు (Telugu)</option> 
+        <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+        <option value="Hindi">हिन्दी (Hindi)</option>
+      </select>
+    </div>
+
+    <!-- Swaralipi Matrix Notation Tuning Controls Container -->
+    <div class="control-item-wrapper" style="display: inline-flex; align-items: center; gap: 12px;">
+  
+      <!-- 1. Primary System Selector Toggle -->
+      <div class="dropdown-field-group">
+        <label for="notationSystem" class="control-label" style="font-weight: bold; margin-right: 5px;">Notation:</label>
+        <select id="notationSystem" class="control-dropdown-select" onchange="handleNotationSystemChange(this.value)" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc;">
+          <option value="indian" selected>Indian (Sargam)</option>
+          <option value="western">Western (Piano)</option>
+        </select>
+      </div>
+
+      <!-- 2. Dynamic Scale Selector Dropdown (Hidden on Load by Default) -->
+      <div id="scaleDropdownWrapper" class="dropdown-field-group" style="display: none; align-items: center;">
+        <label for="westernScaleSelect" class="control-label" style="font-weight: bold; margin-right: 5px; margin-left: 5px;">Scale (Sa):</label>
+        <select id="westernScaleSelect" class="control-dropdown-select" onchange="handleScaleDropdownChange(this.value)" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc;">
+          <option value="C" selected>C</option>
+          <option value="C#">C# / Db</option>
+          <option value="D">D</option>
+          <option value="D#">D# / Eb</option>
+          <option value="E">E</option>
+          <option value="F">F</option>
+          <option value="F#">F# / Gb</option>
+          <option value="G">G</option>
+          <option value="G#">G# / Ab</option>
+          <option value="A">A</option>
+          <option value="A#">A# / Bb</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+    </div>
+</div>
+  
+<div id="notationCanvas"></div>
+
+<!-- SEO Invisible Sitemap Anchor Container -->
+<div id="seoLinkDirectory" style="opacity: 0.01; position: absolute; pointer-events: none; bottom: 0;"></div>
+
+<!-- Public Search Engine Indexing Zone & Clean Minimalist Footer -->
+<div id="seo-directory-container" style="margin-top: 40px; padding: 20px; border-top: 1px solid #f1f5f9; text-align: center; position: relative;">
+  
+  <!-- Sleek Call-to-Action Line with Your Custom Wording -->
+  <p style="font-size: 13px; color: #64748b; margin: 0; font-weight: 400; position: relative; z-index: 2; line-height: 1.6;">
+    Developed by <strong style="color: #475569;">Venugopal Daliparti</strong> © 2026. All Rights Reserved.
+    <br>
+    🎵 Want to add a new Song/Keethan on this layout? <a href="mailto:vdaliparthi@gmail.com" style="color: #0284c7; text-decoration: none; font-weight: 500; border-bottom: 1px dashed #0284c7;">Write to Me</a>
+  </p>
+
+  <!-- Complete Zero-Dimension structural container block keeps sitemap hidden perfectly -->
+  <ul id="seo-song-links-list" style="list-style-type: none; padding: 0; margin: 0; display: block; font-size: 0px; line-height: 0; height: 0px; width: 0px; overflow: hidden; position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; opacity: 0; z-index: 1;">
+    <!-- JavaScript safely inserts indexable items here dynamically -->
+  </ul>
+</div>
+
+<script>
+  // ===========================================================================
+  // 1. STANDALONE DATA ENDPOINT CONFIGURATIONS & STATE CACHE
+  // ===========================================================================
+  const WEB_API_URL = "https://script.google.com/macros/s/AKfycbxr_4ZG8IcqWdyVyVTfJO1z2IiZg0YgstUDKJTMz_T8TzIC7GWECcRM3eohVQmRpan4aQ/exec"; 
+
+  window.currentSongData = null;         // Caches complete raw JSON payload from Google Sheets
+  window.activeLanguage = "telugu";      // Natively synchronized with your default HTML layout choice
+  window.notationSystem = "indian";       // Default notation workflow track configuration
+  window.selectedScale = "C";            // Baseline Western transposition scale root signature
+  window.globalRepositoryDirectory = []; // Unified local memory cache directory list
+
+  // ===========================================================================
+  // 2. CORE STANDALONE LIFECYCLE BOOT LOOPS
+  // ===========================================================================
+  window.addEventListener("DOMContentLoaded", function() {
+    // 1. Force the language dropdown selection to default to Telugu right away
+    var langSelect = document.getElementById("langDropdown");
+    if (langSelect) langSelect.value = "Telugu";
+    
+    // 2. Clear out the search input box text initially
+    var searchInput = document.getElementById("songSearchInput");
+    if (searchInput) searchInput.value = "";
+
+    // 3. Set the song dropdown to sit on a matching blank row state initially
+    var songSelect = document.getElementById("songDropdown");
+    if (songSelect) {
+      songSelect.innerHTML = "<option value=''>--- Select Song ---</option>";
+      songSelect.value = "";
+    }
+    
+    // 4. Fire layout optimization fallbacks
+    setTimeout(enforceHeaderTruncationOnWrap, 50);
+    setTimeout(enforceHeaderTruncationOnWrap, 200);
+
+    // 5. ACTIVATE THE DETACHED DATA PIPELINE PRELOADER
+    bootStandaloneAppEngine();
+    
+  //    console.log("=== PHONETIC TRANSLATION ENGINE DEBUG RUN ===");
+  //    
+  //    // Test input target word
+  //    var testWord = "beats"; 
+  //    
+  //    // Target parameters aligned with your function declaration: (textStr, targetLang, scriptOffset)
+  //    var debugOutput = translateContinuousText(testWord, "telugu", 0);
+  //    
+  //    console.log("Input Word:  " + testWord);
+  //    console.log("Output Raw:  " + debugOutput);
+  //    console.log("Syllable Character Codes:");
+  //    for (var i = 0; i < debugOutput.length; i++) {
+  //       console.log("Pos " + i + ": " + debugOutput.charAt(i) + " (Code: " + debugOutput.charCodeAt(i) + ")");
+  //    }
+  //   
+  //    console.log("=============================================");
+
+});
+
+function bootStandaloneAppEngine() {
+  var catSelect = document.getElementById("categoryDropdown") || document.getElementById("categorySelect");
+  var songSelect = document.getElementById("songDropdown") || document.getElementById("songSelect");
+  var searchInput = document.getElementById("songSearchInput");
+
+  // UNIFIED INITIAL LOADING STATE: Displays standard placeholders across input fields
+  const CONFIG_LOADING_TEXT = "Loading database vault...";
+  
+  if (catSelect) catSelect.innerHTML = "<option>" + CONFIG_LOADING_TEXT + "</option>";
+  if (songSelect) songSelect.innerHTML = "<option>" + CONFIG_LOADING_TEXT + "</option>";
+  if (searchInput) {
+    searchInput.value = CONFIG_LOADING_TEXT;
+    searchInput.disabled = true; 
+    searchInput.style.color = "#94a3b8"; 
+  }
+
+  // A. CENTRALIZED DATA PROCESSOR: Renders data array details instantly once received
+  function processDirectoryData(data) {
+    console.log("Database payload resolved successfully:", data);
+    
+    if (!data || !Array.isArray(data)) {
+      console.error("Invalid database package format dropped.");
+      return;
+    }
+    
+    // Save records globally to synchronize with your omni-search engine memory matches
+    window.globalRepositoryDirectory = data;
+    
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.disabled = false;
+      searchInput.style.color = "inherit"; 
+    }
+
+    if (songSelect) {
+      songSelect.innerHTML = "<option value=''>--- Select Song ---</option>";
+      songSelect.value = "";
+    }
+
+    // Populate Category menu fields 
+    if (catSelect) {
+      catSelect.innerHTML = ""; 
+      
+      var blankCat = document.createElement('option');
+      blankCat.value = "";
+      blankCat.innerHTML = "--- Select Category ---";
+      catSelect.appendChild(blankCat);
+
+      // Extract unique category listings using a quick local Map check
+      const categories = [...new Set(data.map(item => item.category))];
+      
+      categories.forEach(function(cat) {
+        var opt = document.createElement('option');
+        opt.value = cat;
+        opt.innerHTML = cat;
+        catSelect.appendChild(opt);
+      });
+      
+      // ✅ CHANGED: Neutralized startup focus so it sits on the instructions placeholder
+      catSelect.value = "";
+      syncSongDropdownByCategory("");
+    }
+    
+    // SEO LINK GENERATOR: Builds text links for public indexing scripts
+    var seoContainer = document.getElementById("seo-song-links-list");
+    if (seoContainer) {
+        seoContainer.innerHTML = ""; 
+        for (var k = 0; k < data.length; k++) {
+            var listItem = document.createElement("li");
+            var anchorTag = document.createElement("a");
+            
+            var encodedSong = encodeURIComponent(data[k].name);
+            var encodedCategory = encodeURIComponent(data[k].category);
+            
+            anchorTag.href = "?song=" + encodedSong + "&category=" + encodedCategory;
+            anchorTag.textContent = data[k].name + " (" + data[k].category + ")";
+            
+            anchorTag.style.textDecoration = "none";
+            anchorTag.style.color = "#d32f2f"; 
+            anchorTag.style.fontWeight = "500";
+            
+            listItem.appendChild(anchorTag);
+            seoContainer.appendChild(listItem);
+        }
+    }
+    
+    if (typeof initializeGlobalSearchEngine === "function") {
+      initializeGlobalSearchEngine();
+    }
+
+    // AUTO-LOAD PARAMETER DEEP LINKS
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlSong = urlParams.get('song');
+    var urlCategory = urlParams.get('category');
+    
+    if (urlCategory && urlSong) {
+        if (catSelect) {
+            catSelect.value = urlCategory;
+            syncSongDropdownByCategory(urlCategory);
+            
+            if (songSelect) {
+                songSelect.value = urlSong;
+                setTimeout(function() {
+                    executeNotationGridFetch(urlCategory, urlSong);
+                }, 800);
+            }
+        }
+    }
+  }
+
+  // B. DYNAMIC RUNTIME ENVIRONMENT SELECTOR WITH TIMEOUT HARD HANDSHAKE FALLBACKS
+  let initialLoadFlag = false;
+
+  if (typeof google !== "undefined" && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response && response.length > 0 && !initialLoadFlag) {
+          initialLoadFlag = true;
+          processDirectoryData(response);
+        }
+      })
+      .withFailureHandler(function(err) {
+        console.warn("Google native bridge failed. Routing to API endpoint...", err);
+      })
+      .buildCompleteGlobalDirectory();
+  }
+
+  // Safe Timeout Fallback Route: If Google Server takes longer than 1.2 seconds, query your Web API URL macro directly
+  setTimeout(function() {
+    if (!initialLoadFlag) {
+      console.log("⚠️ Bridge delayed. Dispatching backup API network request...");
+      
+      fetch(WEB_API_URL + "?action=getDirectory")
+        .then(function(res) { return res.json(); })
+        .then(function(backupData) {
+          if (backupData && Array.isArray(backupData) && !initialLoadFlag) {
+            initialLoadFlag = true;
+            processDirectoryData(backupData);
+          }
+        })
+        .catch(function(err) {
+          console.error("Critical connection failure across all data routes:", err);
+          if (catSelect) catSelect.innerHTML = "<option>Error loading database</option>";
+        });
+    }
+  }, 1200);
+}
+
+  // ===========================================================================
+  // 3. DATA INGESTION GATEWAY & HIGH-SPEED TRANSITION HANDLERS
+  // ===========================================================================
+  function executeNotationGridFetch(category, songName) {
+    if (!songName || songName === "" || songName.startsWith("Loading")) return;
+    
+    // Centered, modern loading typography with a pristine pulsing layout animation
+    var canvasContainer = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+    if (canvasContainer) {
+      canvasContainer.innerHTML = 
+      "<div style='display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; width: 100%; text-align: center; color: #64748b; font-family: inherit; font-size: 15px; font-weight: 500; letter-spacing: 0.5px; animation: seoPulse 1.8s ease-in-out infinite;'> " +
+        "<style>" +
+          "@keyframes seoPulse { 0% { opacity: 0.4; } 50% { opacity: 0.9; } 100% { opacity: 0.4; } }" +
+        "</style>" +
+        "<span>Loading selected composition into Swaralipi matrix layout...</span>" +
+      "</div>";
+    }
+    
+    var selectedMode = document.getElementById("langDropdown") ? document.getElementById("langDropdown").value : "Telugu";
+    var cleanLang = selectedMode ? selectedMode.toLowerCase() : "english";
+
+    // A. ENVIRONMENT ROUTER WITH DUAL PAYLOAD VALIDATION PIPELINES
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      // NATIVE GOOGLE INTERFACE HIGHWAY: Requests pure data payloads instead of legacy server HTML lines
+      google.script.run
+        .withSuccessHandler(function(response) {
+          handleSongLoadingSuccess(response);
+        })
+        .withFailureHandler(function(err) {
+          console.error("Google environment grid rendering fault:", err);
+          var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+          if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+        })
+        .generatePublicGrid(cleanLang, songName, category, "json");
+    } else {
+      // NETLIFY API FETCH FALLBACK: Queries external web API macro route parameters
+      fetch(WEB_API_URL + "?action=getNotationMatrix&category=" + encodeURIComponent(category) + "&song=" + encodeURIComponent(songName) + "&mode=" + encodeURIComponent(cleanLang) + "&format=json")
+        .then(function(response) { return response.json(); })
+        .then(function(responseObj) {
+          handleSongLoadingSuccess(responseObj);
+        })
+        .catch(function(err) {
+          console.error("Network synchronization fault loading notation cells:", err);
+          var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+          if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+        });
+    }
+  }
+
+  // ===========================================================================
+  // 4. REAL-TIME OMNI GLOBAL SEARCH ENGINE ENGINE LOGIC
+  // ===========================================================================
+  function initializeGlobalSearchEngine() {
+    var searchInput = document.getElementById("songSearchInput");
+    var dataList = document.getElementById("songSuggestionsList");
+  
+    if (!searchInput || !dataList) return;
+  
+    searchInput.oninput = function() {
+      var query = searchInput.value.trim().toLowerCase();
+    
+      if (query === "") {
+        dataList.innerHTML = "";
+        return;
+      }
+    
+      // Scan the preloaded background database cache array instantly from window memory! (~0ms latency)
+      var matchingEntries = window.globalRepositoryDirectory.filter(function(item) {
+        return item.name.toLowerCase().indexOf(query) !== -1;
+      });
+    
+      dataList.innerHTML = "";
+    
+      matchingEntries.forEach(function(item) {
+        var option = document.createElement("option");
+        option.value = item.name;
+        option.label = " (" + item.category + ")"; 
+        dataList.appendChild(option);
+      });
+    
+      var exactMatch = window.globalRepositoryDirectory.find(function(item) {
+        return item.name.toLowerCase() === query;
+      });
+    
+      if (exactMatch) {
+        var catSelect = document.getElementById("categoryDropdown");
+        var songSelect = document.getElementById("songDropdown");
+        
+        // CRITICAL DE-BOUNCE HOOK: PURGES BROWSER SHADOW-DOM SUGGESTIONS ELEMENT OVERLAPS
+        dataList.innerHTML = ""; 
+        searchInput.blur();      
+        searchInput.removeAttribute('list'); 
+        
+        setTimeout(function() {
+          searchInput.setAttribute('list', 'songSuggestionsList'); 
+        }, 100);
+        
+        // Auto-align structural dropdown category indices
+        if (catSelect) catSelect.value = exactMatch.category;
+        
+        // Synchronize song list drop-down matrix nodes locally 
+        if (songSelect) {
+          var filteredSongs = window.globalRepositoryDirectory.filter(function(item) {
+            return item.category === exactMatch.category;
+          });
+          
+          songSelect.innerHTML = "";
+          for (var i = 0; i < filteredSongs.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = filteredSongs[i].name;
+            opt.innerHTML = filteredSongs[i].name;
+            songSelect.appendChild(opt);
+          }
+          // Lock selected composition item in drop-down viewport window frame
+          songSelect.value = exactMatch.name;
+        }
+        
+        // Execute clean notation grid data loading sequence 
+        executeNotationGridFetch(exactMatch.category, exactMatch.name);
+        searchInput.value = "";
+      }
+    };
+  }
+ 
+  // ===========================================================================
+  // 5. STABILIZED VISUAL LAYOUT & TRUNCATION OBSERVER SYSTEMS
+  // ===========================================================================
+
+  /**
+   * Inspects the matrix layout at runtime, calculates the exact number of cells 
+   * that fit on the first visible screen row, and truncates the grey header row.
+   */
+  function enforceHeaderTruncationOnWrap() {
+    var headerRow = document.querySelector(".notation-row.header-row");
+    var firstDataRow = document.querySelector(".swara-sahithya-pair") || 
+                      document.querySelector(".notation-row:not(.header-row)");
+                      
+    if (!headerRow || !firstDataRow) return;
+
+    var headerCells = Array.from(headerRow.children);
+    var dataCells = Array.from(firstDataRow.children);
+    if (headerCells.length === 0 || dataCells.length === 0) return;
+
+    // Reset display rules on all header cells first so we have a clean measurement baseline
+    headerCells.forEach(function(cell) { cell.style.display = "flex"; });
+
+    var initialRowTopCoordinate = dataCells[0].offsetTop;
+    var maxColumnsInFirstRow = 0;
+
+    for (var i = 0; i < dataCells.length; i++) {
+      if (dataCells[i].offsetTop === initialRowTopCoordinate) {
+        maxColumnsInFirstRow++;
+      } else {
+        break; 
+      }
+    }
+
+    headerCells.forEach(function(cell, index) {
+      if (index >= maxColumnsInFirstRow) {
+        cell.style.display = "none"; 
+      }
+    });
+  }
+
+  // Bind structural window resize and paint monitoring triggers cleanly
+  window.addEventListener("load", enforceHeaderTruncationOnWrap);
+  window.addEventListener("resize", enforceHeaderTruncationOnWrap);
+
+  // PERMANENT MUTATION OBSERVER (Triggers layout truncation immediately on song change)
+  var gridObserver = new MutationObserver(function(mutations) {
+    var firstDataRow = document.querySelector(".swara-sahithya-pair") || 
+                      document.querySelector(".notation-row:not(.header-row)");
+    if (firstDataRow && firstDataRow.children.length > 0) {
+      enforceHeaderTruncationOnWrap();
+      setTimeout(enforceHeaderTruncationOnWrap, 50);
+      setTimeout(enforceHeaderTruncationOnWrap, 150);
+    }
+  });
+
+  if (document.body) {
+    gridObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // ===========================================================================
+  // 6. DROPDOWN COMPONENT DATA HYDRATION ENGINE
+  // ===========================================================================
+  function populateAppDirectoryDropdowns(directoryPayload) {
+    console.log("Directory data bundle successfully received from server:", directoryPayload);
+    
+    if (!directoryPayload || !Array.isArray(directoryPayload)) {
+      console.error("Invalid directory structure package format dropped.");
+      return;
+    }
+    
+    // Cache the complete sheet maps matrix reference cleanly into browser memory
+    window.globalRepositoryDirectory = directoryPayload;
+
+    // Extract unique Category keys cleanly via an in-memory Set lookup
+    const categories = [...new Set(directoryPayload.map(item => item.category))];
+    
+    // High-reliability layout hook lookups matching all naming variants
+    var categoryDropdown = document.getElementById("categoryDropdown") || 
+                          document.getElementById("categorySelect");
+                          
+    if (!categoryDropdown) {
+      console.error("Layout target error: Category select dropdown element not found in the HTML.");
+      return;
+    }
+
+    // Render Category option components cleanly into your layout dropdown select tag
+    categoryDropdown.innerHTML = categories.map((cat, idx) => 
+      `<option value="${cat}" ${idx === 0 ? 'selected' : ''}>${cat}</option>`
+    ).join("");
+
+    // Explicitly passes the first element string index to launch the song sub-menu loop
+    if (categories.length > 0) {
+      var initialCategoryString = categories[0]; 
+      syncSongDropdownByCategory(initialCategoryString);
+    }
+  }
+
+  function handleCategoryDropdownChange() {
+    var categoryDropdown = document.getElementById("categoryDropdown") || 
+                          document.getElementById("categorySelect");
+    if (!categoryDropdown) return;
+    
+    var selectedCategory = categoryDropdown.value;
+    var searchInput = document.getElementById("songSearchInput");
+    if (searchInput) searchInput.value = ""; // Flush search field layout states safely
+    
+    syncSongDropdownByCategory(selectedCategory);
+  }
+
+  function syncSongDropdownByCategory(selectedCategory) {
+    var songSelect = document.getElementById("songDropdown") || 
+                      document.getElementById("songSelect") || 
+                      document.getElementById("keerthanSelect");
+                      
+    if (!songSelect) {
+      console.error("Layout target error: Song select dropdown element not found in the HTML.");
+      return;
+    }
+
+    songSelect.innerHTML = ""; 
+    
+    var blankSong = document.createElement('option');
+    blankSong.value = "";
+    blankSong.innerHTML = "--- Select Song ---";
+    songSelect.appendChild(blankSong);
+
+    if (!selectedCategory || selectedCategory === "") {
+      songSelect.value = "";
+      clearNotationCanvas();
+      return;
+    }
+
+    // Filter local directory array dynamically in browser memory (~0ms latency)
+    var filteredSongs = window.globalRepositoryDirectory.filter(function(item) {
+      return item.category === selectedCategory;
+    });
+
+    filteredSongs.forEach(function(song) {
+      var opt = document.createElement('option');
+      opt.value = song.name;
+      opt.innerHTML = song.name;
+      songSelect.appendChild(opt);
+    });
+    
+    // Keep initial view clean until the user targets a track selection manually
+    songSelect.value = "";
+    clearNotationCanvas();
+  }
+
+  function handleSongDropdownChange() {
+    var categoryDropdown = document.getElementById("categoryDropdown") || 
+                          document.getElementById("categorySelect");
+    var songSelect = document.getElementById("songDropdown") || 
+                    document.getElementById("songSelect") || 
+                    document.getElementById("keerthanSelect");
+                    
+    if (!categoryDropdown || !songSelect) return;
+
+    var activeCategory = categoryDropdown.value;
+    var activeSong = songSelect.value;
+    
+    if (activeCategory && activeSong && activeSong !== "") {
+      var targetCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+      if (targetCanvas) targetCanvas.innerHTML = '<p style="color:#666; font-style:italic;">Syncing notation array cells...</p>';
+      
+      // ✅ UPDATED: Extract the exact dynamic active language state string value
+      var currentModeLang = window.activeLanguage || "telugu";
+
+      // Request raw data directly from your optimized Google Script engine path
+      google.script.run
+        .withSuccessHandler(handleSongLoadingSuccess)
+        .generatePublicGrid(currentModeLang, activeSong, activeCategory, "json");
+    }
+  }
+
+  function clearNotationCanvas() {
+    var canvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+    if (canvas) canvas.innerHTML = '<p style="color:#999; font-style:italic; text-align:center; padding: 20px;">Please select a category and song to view notations.</p>';
+  }
+
+  // ===========================================================================
+  // 7. THE DATA INGESTION GATEWAY & TUNING CONFIGURATION CONTROL HANDLERS
+  // ===========================================================================
+  function handleSongLoadingSuccess(payload) {
+    let targetData = payload;
+
+    if (typeof payload === "string") {
+      try {
+        targetData = JSON.parse(payload);
+      } catch (e) {
+        console.error("Critical JSON compilation fault:", e);
+        var errCanvas1 = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+        if (errCanvas1) {
+          errCanvas1.innerHTML = `<p style="color:#ef4444; font-weight:bold; text-align:center;">Error parsing sheet data packet.</p>`;
+        }
+        return;
+      }
+    }
+
+    if (!targetData || targetData.success === false) {
+      var errCanvas2 = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+      if (errCanvas2) {
+        errCanvas2.innerHTML = `<p style="color:#ef4444; font-weight:bold; text-align:center;">Error: ${targetData ? targetData.error : "Failed connection layout"}</p>`;
+      }
+      return;
+    }
+
+    window.currentSongData = targetData;
+    renderSwaralipiGrid();
+  }
+
+  function handleLanguageDropdownChange(newLang) {
+    window.activeLanguage = newLang ? newLang.toLowerCase() : "telugu";
+    renderSwaralipiGrid(); // Dynamic client-side redraw in memory without server latency!
+  }
+
+  function handleNotationSystemChange(systemMode) {
+    window.notationSystem = systemMode;
+    const scaleWrapper = document.getElementById("scaleDropdownWrapper");
+    
+    if (systemMode === "western") {
+      scaleWrapper.style.display = "inline-flex";
+    } else {
+      scaleWrapper.style.display = "none";
+    }
+    renderSwaralipiGrid(); // Toggles Sargam vs. Piano notes instantly in browser layout!
+  }
+
+  function handleScaleDropdownChange(newScale) {
+    window.selectedScale = newScale;
+    renderSwaralipiGrid(); // Transposes pitches instantly in browser memory loops!
+  }
+
+  // ===========================================================================
+  // 8. THE MAIN FRONTEND MATRIX CELL RENDER LOOPS
+  // ===========================================================================
+function renderSwaralipiGrid() {
+  if (!window.currentSongData) return;
+
+  const data = window.currentSongData;
+  const values = data.matrixData;
+  const totalActiveCols = data.metadata.totalActiveCols;
+  const talaRowIndices = data.talaRowIndices;
+  const targetTalaRowIndex = data.targetTalaRowIndex;
+  const columnBorderClasses = data.columnBorders;
+  const tStructure = data.headerSequence || []; 
+
+  const lang = window.activeLanguage;
+  const systemMode = window.notationSystem;
+  const scaleKey = window.selectedScale;
+
+  const langOffsets = { "kannada": 128, "hindi": -768, "telugu": 0, "english": 0 };
+  const currentOffset = langOffsets[lang] || 0;
+
+  const labelDict = {
+    english: { raga: "Raaga: ", tala: " | Swarajati: ", composer: " | Swarakartha: " },
+    telugu:  { raga: "రాగం: ", tala: " | స్వరజతి: ", composer: " | స్వరకర్త: " },
+    kannada: { raga: "ರಾಗ: ",  tala: " | స్వరజతి: ", composer: " | స్వరಕರ್త: " },
+    hindi:   { raga: "राग: ",  tala: " | स्वरजति: ", composer: " | स्वरकर्ता: " }
+  };
+  const labels = labelDict[lang] || labelDict["english"];
+
+  var txTitle = translateContinuousText(data.metadata.title || "", lang, currentOffset);
+  var txRaga = data.metadata.raga ? translateContinuousText(data.metadata.raga, lang, currentOffset) : "";
+  var txTala = data.metadata.tala ? translateContinuousText(data.metadata.tala, lang, currentOffset) : "";
+  var txComposer = data.metadata.composer ? translateContinuousText(data.metadata.composer, lang, currentOffset) : "";
+
+  var headerBanner = "";
+  if (txRaga) headerBanner += labels.raga + txRaga;
+  if (txTala) headerBanner += (headerBanner ? " " : "") + labels.tala.trim() + " " + txTala;
+  if (txComposer) headerBanner += (headerBanner ? " " : "") + labels.composer.trim() + " " + txComposer;
+
+  var html = '<div class="song-container">' +
+    '<div class="title-banner-wrapper">' +
+      '<div class="title-line-main">' + txTitle + '</div>' + 
+      (headerBanner ? '<div class="title-line-secondary">' + headerBanner + '</div>' : '') +
+    '</div>';
+
+  // ✅ HORIZONTAL REPEAT FIX: Modulo operator forces the cycle pattern to repeat across all active columns
+  html += '<div id="top-master-header" class="notation-row header-row">';
+  for (var i = 0; i < totalActiveCols; i++) {
+    var c = talaRowIndices[i];
+    
+    // Calculate the repeating cycle index position
+    var cycleIdx = tStructure.length > 0 ? (i % tStructure.length) : i;
+    var displayValue = (tStructure && tStructure[cycleIdx] !== undefined) ? tStructure[cycleIdx] : "";
+    
+    var borderClass = columnBorderClasses[c] || "";
+    html += '<div class="cell header-cell ' + borderClass + '">' + displayValue + '</div>';
+  }
+  html += '</div>';
+
+  var insideGroup = false;
+  const regexDigitsOnly = /^\d+$/;
+  const regexContinuousNarrative = /^[SRGMPDNsrgmpdn1-8\-,.'’`\s\u0307\u0323_~^⁀~]+$/;
+  const regexVowelCheck = /[aeiouAEIOUR]/;
+
+  for (var r = 0; r < values.length; r++) {
+    if (r === targetTalaRowIndex || r === 0 || r === 1) continue;
+
+    var totalCellsScanned = 0, rawDigitsCount = 0;
+    for (var i = 0; i < totalActiveCols; i++) {
+      var checkColIdx = talaRowIndices[i];
+      if (values[r] && values[r][checkColIdx] !== undefined) {
+        var rawCellStr = String(values[r][checkColIdx]).trim();
+        if (rawCellStr !== "") {
+          totalCellsScanned++;
+          if (regexDigitsOnly.test(rawCellStr)) { rawDigitsCount++; }
+        }
+      }
+    }
+    if (totalCellsScanned > 0 && rawDigitsCount === totalCellsScanned) continue;
+
+    var cellEText = (values[r] && values[r][4] !== undefined) ? String(values[r][4]).trim() : "";
+    
+    var hasOtherGridContent = false;
+    for (var i = 0; i < totalActiveCols; i++) {
+      var colIdx = talaRowIndices[i];
+      if (colIdx > 4 && values[r] && values[r][colIdx] !== undefined && String(values[r][colIdx]).trim() !== "") {
+        hasOtherGridContent = true;
+        break;
+      }
+    }
+
+    var isContinuousSentence = cellEText.length > 3 && !regexContinuousNarrative.test(cellEText);
+    if (isContinuousSentence && !hasOtherGridContent) {
+      if (insideGroup) { html += '</div>'; insideGroup = false; }
+      var translatedHeader = translateContinuousText(cellEText, lang, currentOffset);
+      html += '<div class="heading-row">' + translatedHeader + '</div>';
+      continue;
+    }
+
+    var swaraVoteCount = 0, lyricVoteCount = 0;
+    for (var i = 0; i < totalActiveCols; i++) {
+      var checkText = (values[r] && values[r][talaRowIndices[i]] !== undefined) ? String(values[r][talaRowIndices[i]]).trim() : "";
+      if (checkText === "" || checkText === "-" || checkText === ",") continue;
+      var isSwaraToken = regexContinuousNarrative.test(checkText) && !regexVowelCheck.test(checkText);
+      if (isSwaraToken) swaraVoteCount++; else lyricVoteCount++;
+    }
+
+    var rowType = "plain";
+    if (swaraVoteCount > 0 || lyricVoteCount > 0) {
+      rowType = (swaraVoteCount >= lyricVoteCount) ? "swara" : "lyric";
+    }
+
+    if (rowType === "swara") {
+      if (insideGroup) { html += '</div>'; }
+      html += '<div class="swara-sahithya-pair">';
+      insideGroup = true;
+
+      var swaraRowValues = values[r];
+      
+      // Look ahead to check the next sequential data row
+      var nextRowIdx = r + 1;
+      var lyricRowValues = values[nextRowIdx];
+      var shouldPairWithLyrics = false;
+
+      // ✅ DYNAMIC STACKING EVALUATOR: Pre-scans the upcoming row to see if it's music or lyrics
+      if (lyricRowValues && nextRowIdx < values.length) {
+        var nextRowCellEText = String(lyricRowValues).trim();
+        
+        // 1. Check if the upcoming row is a section heading (like Pallavi / Anupallavi)
+        var nextRowIsContinuous = nextRowCellEText.length > 3 && !regexContinuousNarrative.test(nextRowCellEText);
+        
+        var nextRowHasOtherGridContent = false;
+        var hasLongSyllableText = false;
+        var nextRowSwaraVotes = 0;
+        var nextRowLyricVotes = 0;
+
+        for (var i = 0; i < totalActiveCols; i++) {
+          var colIdx = talaRowIndices[i];
+          if (lyricRowValues[colIdx] !== undefined) {
+            var checkColText = String(lyricRowValues[colIdx]).trim();
+            if (checkColText !== "") {
+              nextRowHasOtherGridContent = true;
+              if (checkColText.length > 5) { hasLongSyllableText = true; }
+              
+              // Count votes for the upcoming row to determine its type
+              if (checkColText !== "-" && checkColText !== ",") {
+                var isSwaraToken = regexContinuousNarrative.test(checkColText) && !regexVowelCheck.test(checkColText);
+                if (isSwaraToken) nextRowSwaraVotes++; else nextRowLyricVotes++;
+              }
+            }
+          }
+        }
+
+        // Determine if the next row is structurally another Swara row
+        var nextRowType = "plain";
+        if (nextRowSwaraVotes > 0 || nextRowLyricVotes > 0) {
+          nextRowType = (nextRowSwaraVotes >= nextRowLyricVotes) ? "swara" : "lyric";
+        }
+
+        // Only pair if it's explicitly a lyric row, not an independent text header, and not another swara row!
+        if (nextRowType === "lyric" && !hasLongSyllableText && !(nextRowIsContinuous && !nextRowHasOtherGridContent)) {
+          shouldPairWithLyrics = true;
+        }
+      }
+
+      // Generate the horizontal cells for the current row
+      for (var i = 0; i < totalActiveCols; i++) {
+        var c = talaRowIndices[i];
+        var borderClass = columnBorderClasses[c] || "";
+        var gridPos = (i + 1);
+
+        var swaraText = (swaraRowValues && swaraRowValues[c] !== undefined) ? String(swaraRowValues[c]).trim() : "";
+        if (swaraText === ",") swaraText = "-";
+
+        // 1. Identify Octave heights using your standard layout markers
+        var octaveClass = "octave-middle";
+        var isUpper = false;
+        var isLower = false;
+        
+        if (swaraText !== "" && swaraText !== "-" && swaraText !== "—") {
+          if (/([SRGMPDNsrgmpdn])['’‘`]/.test(swaraText) || swaraText.endsWith("'") || swaraText.endsWith("’") || swaraText.endsWith("‘") || swaraText.endsWith("`")) {
+            octaveClass = "octave-upper";
+            isUpper = true;
+          } 
+          else if (/['’‘`Setup]([SRGMPDNsrgmpdn])/.test(swaraText) || swaraText.startsWith("'") || swaraText.startsWith("’") || swaraText.startsWith("‘") || swaraText.startsWith("`") || swaraText.indexOf(".") !== -1 || swaraText.indexOf(",") !== -1) {
+            octaveClass = "octave-lower";
+            isLower = true;
+          }
+        }
+
+        // 2. Isolate the raw note token from spacing strings
+        var rawNoteToken = swaraText.replace(/['’‘`.,]/g, "").trim();
+        
+        // ✅ SCHOOL FORMATTING CONVERSION ENGINE
+        var isKomal = false;
+        var isTeevraMa = false;
+        var displaySwara = rawNoteToken;
+
+        if (rawNoteToken !== "" && rawNoteToken !== "-" && rawNoteToken !== "—") {
+          // If it is lowercase 'm', transform it directly to print as M' in your grid view
+          if (rawNoteToken === "m") {
+            isTeevraMa = true;
+            displaySwara = "M'";
+          } 
+          // If it is a lowercase komal note (r, g, d, n), flag it for the underline style
+          else if (/[rgdn]/.test(rawNoteToken)) {
+            isKomal = true;
+            displaySwara = rawNoteToken.toUpperCase(); // Force display text to uppercase
+          }
+        }
+
+        // 3. Process Western transpositions if active, passing the original sheet text token
+        if (systemMode === "western") {
+          displaySwara = calculateClientWesternNote(swaraText, scaleKey);
+        } else {
+          // Sargam Mode: Physically attach the combining dot characters based on the octave calculation
+          if (displaySwara !== "" && displaySwara !== "-" && displaySwara !== "—") {
+            if (isUpper) {
+              displaySwara = displaySwara + "̇"; // Visual dot centered on top (Tara Saptak)
+            } else if (isLower) {
+              displaySwara = displaySwara + "̣"; // Visual dot nested underneath (Mandra Saptak)
+            }
+          }
+        }
+
+        // ✅ DYNAMIC CSS CLASSES & BORDERS: Handles simultaneous Underline + Lower Dot spacing perfectly
+        var swaraCellClass = "cell swara-cell " + octaveClass + borderClass;
+        var inlineStyles = "";
+        
+        if (systemMode !== "western" && isKomal) {
+          // Injects an elegant custom border underneath the letter block instead of text-decoration
+          // This keeps the line cleanly separated from the lower octave dot so BOTH render beautifully!
+          inlineStyles = "border-bottom: 2px solid #1e293b !important; border-radius: 0px; padding-bottom: 2px; font-weight: 800;";
+        }
+
+        var translatedLyric = "";
+        if (shouldPairWithLyrics) {
+          var lyricText = (lyricRowValues && lyricRowValues[c] !== undefined) ? String(lyricRowValues[c]).trim() : "";
+          if (lyricText === ",") lyricText = "-";
+          translatedLyric = translateContinuousText(lyricText, lang, currentOffset);
+        }
+
+        var lyricCellClass = "cell lyric-cell " + borderClass;
+
+        html += '<div class="beat-column-pair">' +
+          '<div class="' + swaraCellClass + '" style="--cell-col-idx: ' + gridPos + '; ' + inlineStyles + '">' + displaySwara + '</div>' +
+          (shouldPairWithLyrics ? 
+            '<div class="' + lyricCellClass + '" style="--cell-col-idx: ' + gridPos + ';">' + translatedLyric + '</div>' : 
+            '<div class="' + lyricCellClass + '" style="--cell-col-idx: ' + gridPos + '; display: none;"></div>') +
+        '</div>';
+      }
+      
+      html += '</div>';
+      insideGroup = false;
+
+      // ✅ STEP THE ROW POINTER ACCURATELY: Only skip the next row if it was consumed as a lyric line
+      if (shouldPairWithLyrics) { r++; }
+      continue;
+    }
+  }
+
+  html += '</div>';
+  
+  var displayCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+  if (displayCanvas) displayCanvas.innerHTML = html;
+}
+
+  /**
+   * Translates visual HTML swara tokens into Western note equivalents.
+   * @param {string} token - The raw string displayed in the cell (e.g., "Ś", "m", "G3", "N3̣")
+   * @param {string} saScale - The chosen root scale key signature (e.g., "C", "G#", "D")
+   * @return {string} Transposed Western note with sharp/flat notation and register markers
+   */
+  // ===========================================================================
+  // 9. CLIENT-SIDE WESTERN NOTATION TRANSPOSITION UTILITY ENGINE
+  // ===========================================================================
+function calculateClientWesternNote(token, saScale) {
+    // 1. Instantly return empty cells, phrase slurs, or rhythm indicators unchanged
+    if (!token || token === "-" || token === "," || token === "~" || token === "^" || token === "⁀") {
+      return token;
+    }
+    
+    // =========================================================================
+    // INNER HELPER ENGINE: Handles translation for one single isolated swara token
+    // =========================================================================
+    function translateSingleSwara(singleToken) {
+      var westernScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      var swaraOffsets = {
+        'S': 0,  's': 0, 'Ś': 0, 'ś': 0,
+        'R1': 1, 'r1': 1, 'r': 1,
+        'R2': 2, 'r2': 2, 'R': 2,
+        'R3': 3, 'r3': 3,
+        'G1': 2, 'g1': 2,
+        'G2': 3, 'g2': 3, 'g': 3,
+        'G3': 4, 'g3': 4, 'G': 4,
+        'M': 5,  'M1': 5,
+        'm': 6,  'M2': 6,
+        'P': 7,  'p': 7,
+        'D1': 8, 'd1': 8, 'd': 8,
+        'D2': 9, 'd2': 9, 'D': 9,
+        'D3': 10,'d3': 10,
+        'N1': 9, 'n1': 9,
+        'N2': 10,'n2': 10, 'n': 10,
+        'N3': 11,'n3': 11, 'N': 11
+      };
+
+      // Detect Octave registers using your exact string structures
+      var isHighOctave = /[\u0307'’‘`̇]/.test(singleToken) || /[Śś]/.test(singleToken);
+      var isLowOctave = /[\u0323.̣_,]/.test(singleToken); // Standard comma/period triggers fallback to lower register
+
+      // Strip symbols safely to find the baseline note definition
+      var cleanToken = singleToken.replace(/[\u0307\u0323'’‘`̣̇._,\-]/g, "").trim();
+      if (cleanToken === "Ś" || cleanToken === "ś") cleanToken = "S";
+
+      if (cleanToken === "R") cleanToken = "R2";
+      if (cleanToken === "G") cleanToken = "G3";
+      if (cleanToken === "M") cleanToken = "M1";
+      if (cleanToken === "m") cleanToken = "M2";
+      if (cleanToken === "D") cleanToken = "D2";
+      if (cleanToken === "N") cleanToken = "N3";
+
+      var baseInterval = swaraOffsets[cleanToken];
+      if (baseInterval === undefined) return singleToken; 
+
+      var rootIndex = westernScale.indexOf(saScale.toUpperCase());
+      if (rootIndex === -1) rootIndex = 0; 
+
+      var targetIndex = (rootIndex + baseInterval) % 12;
+      if (targetIndex < 0) targetIndex += 12;
+      
+      var resNote = westernScale[targetIndex];
+
+      if (isHighOctave && !isLowOctave) {
+        return resNote + "⁺"; 
+      } else if (isLowOctave) {
+        return resNote + "₋"; 
+      }
+      return resNote;
+    }
+
+    // =========================================================================
+    // STATE MACHINE TOKENIZER: Parses bundle combinations character-by-character
+    // =========================================================================
+    var chars = String(token).trim();
+    var resultTokens = [];
+    var i = 0;
+
+    while (i < chars.length) {
+      var c = chars[i];
+
+      // Skip structural spacers or rhythm signs, passing them directly to output
+      if (c === '-' || c === ',' || c === '~' || c === '^' || c === '⁀' || c === ' ') {
+        resultTokens.push(c);
+        i++;
+        continue;
+      }
+
+      // RULE A: Look-Ahead Prefix Quote Detection (e.g., 'P, 'D, 'S)
+      if (c === "'" || c === "’" || c === "‘" || c === "`") {
+        // Look ahead for upcoming sargam letters
+        if (i + 1 < chars.length && /[SRGMPDNsrgmpdnŚś]/.test(chars[i + 1])) {
+          var noteSegment = c + chars[i + 1];
+          i += 2;
+          // Check for sub-numbers like R1, G2, etc.
+          if (i < chars.length && /[1-3]/.test(chars[i])) {
+            noteSegment += chars[i];
+            i++;
+          }
+          resultTokens.push(translateSingleSwara(noteSegment));
+          continue;
+        }
+      }
+
+      // RULE B: Sargam Letter Base Detection (e.g., P', PD, S)
+      if (/[SRGMPDNsrgmpdnŚś]/.test(c)) {
+        var noteSegment = c;
+        i++;
+        
+        // Check for sub-numbers like R1, G2, etc.
+        if (i < chars.length && /[1-3]/.test(chars[i])) {
+          noteSegment += chars[i];
+          i++;
+        }
+        
+        // Look-Back Suffix Quote Check: Peak right to see if a quote belongs to this note
+        if (i < chars.length && (chars[i] === "'" || chars[i] === "’" || chars[i] === "‘" || chars[i] === "`")) {
+          // Verify it's a true suffix trailing marker by peaking further right.
+          // If the next character is another sargam letter (like P''D), this quote belongs to the NEXT letter!
+          if (i + 1 < chars.length && /[SRGMPDNsrgmpdnŚś]/.test(chars[i + 1])) {
+            // Do NOT consume it here. Let the next loop iteration handle it as a prefix!
+          } else {
+            noteSegment += chars[i];
+            i++;
+          }
+        }
+        
+        resultTokens.push(translateSingleSwara(noteSegment));
+        continue;
+      }
+
+      // Fallback fallback if an unmapped formatting character slips in
+      resultTokens.push(c);
+      i++;
+    }
+
+    // Stitch all processed tokens back together into one unified string cell display
+    return resultTokens.join("");
+  }
+
+  // ===========================================================================
+  // 10. MULTI-LINGUAL PHONETIC TRANSLATION ENGINE
+  // ===========================================================================
+  function translateContinuousText(textStr, targetLang, scriptOffset) {
+    if (targetLang === "english") return textStr;
+
+    //var tokens = textStr.split(/(\s+)/);
+    var tokens = textStr.split(/(\s+|[()\[\]\d.:\-]+)/);
+    var processedTokens = [];
+    
+    for (var t = 0; t < tokens.length; t++) {
+      var token = tokens[t];
+      
+      if (/^\s+$/.test(token) || token === "-" || token === "" || token === ":") {
+        processedTokens.push(token);
+        continue;
+      }
+      
+      if (/^[SRGMPDNsrggmpdn1-8\-,.'’`]+$/.test(token)) {
+        processedTokens.push(token);
+        continue;
+      }
+
+      var normalizedToken = token
+        .replace(/ou|Ou|Au/g, "au")
+        .replace(/Ei|ei/g, "ai")  
+        .replace(/Ii|Ie|ie/g, "I")  
+        .replace(/oo|Oo|Uu/g, "U")   
+        .replace(/Ee|Ea|eA|ea/g, "I")
+        .replace(/Aa/g, "A")
+        .replace(/Ru|Ri/g, "R"); 
+
+      // =========================================================================
+      // OPTIMIZED CONSONANT BLENDING ENGINE REGEX
+      // =========================================================================
+      // Modified to capture extensive multi-consonant clusters (like "dhy", "shR", "ll") 
+      // seamlessly without splitting them up into standalone broken tracking fragments.
+      var syllables = normalizedToken.match(/[^aeiouAEIOUR\-:]*(?:aa|ii|uu|ai|au|[aeiouAEIOUR]+)[nmM](?=[kKgGchCjJTtDdnNpPBbyYrlLvwsShxrR])|[aeiouAEIOUR]+|[^aeiouAEIOUR\-:]*(?:aa|ii|uu|ai|au|[aeiouAEIOUR]+)|[^aeiouAEIOUR\-:]+|[-:]+/g) || [normalizedToken];
+      var translatedSyllables = "";
+      
+      for (var s = 0; s < syllables.length; s++) {
+        var syl = syllables[s];
+        if (!syl || syl.trim() === "") continue;
+
+        if ((syl.endsWith("m") || syl.endsWith("n")) && s < syllables.length - 1) {
+          syl = syl.slice(0, -1) + "M"; 
+        }
+
+        var teluguSyllable = convertPhoneticToTelugu(syl);
+        
+        if (targetLang.toLowerCase() === "telugu") {
+          translatedSyllables += teluguSyllable;
+        } else {
+          for (var idx = 0; idx < teluguSyllable.length; idx++) {
+            var code = teluguSyllable.charCodeAt(idx);
+            translatedSyllables += (code >= 3072 && code <= 3199) ? String.fromCharCode(code + scriptOffset) : teluguSyllable.charAt(idx);
+          }
+        }
+      }
+      processedTokens.push(translatedSyllables); 
+    }
+    return processedTokens.join("");
+  }
+
+  // ===========================================================================
+  // 11. INDIAN PHONETIC CONSONANT MATRIX MAPPING Engine
+  // ===========================================================================
+  function convertPhoneticToTelugu(syl) {
+    if (!syl || syl.trim() === "") return "";
+
+    // =======================================================
+    // LAYER 1: STANDALONE TAIL CLOSURE SIGNS & PURE VOWELS
+    // =======================================================
+    if (syl === "M") return "ం"; 
+    if (syl === "H") return "ః"; 
+
+    var standaloneVowels = {
+      "a": "అ", "A": "ఆ", "aa": "ఆ",
+      "i": "ఇ", "I": "ఈ", "ii": "ఈ", "ee": "ఈ",
+      "u": "ఉ", "U": "ఊ", "uu": "ఊ",
+      "e": "ఎ", "E": "ఏ", "ai": "ఐ", 
+      "o": "ఒ", "O": "ఓ", "au": "ఔ", "R": "ఋ"
+    }; 
+    if (standaloneVowels[syl]) return standaloneVowels[syl];
+
+    // =======================================================
+    // LAYER 2: CORE BASE CONSONANTS
+    // =======================================================
+    var consonants = {
+      "k": "క", "K": "క", "kh": "ఖ", "Kh": "ఖ", "g": "గ", "G": "గ", "gh": "ఘ", "Gh": "ఘ",
+      "c": "చ", "C": "చ", "ch": "చ", "Ch": "ఛ", "j": "జ", "J": "జ", "jh": "ఝ", "Jh": "ఝ", 
+      "T": "ట", "Th": "ఠ", "D": "డ", "Dh": "ఢ", "N": "ణ",
+      "t": "త", "th": "థ", "d": "ద", "dh": "ధ", "n": "న",
+      "p": "ప", "P": "ప", "ph": "ఫ", "Ph": "ఫ", "b": "బ", "B": "బ", "bh": "భ", "Bh": "భ", "m": "మ",
+      "y": "య", "Y": "య", "r": "ర", "l": "ల", "L": "ళ", "v": "వ", "w": "వ",
+      "s": "స", "S": "శ", "sh": "శ", "Sh": "ష", "h": "హ",
+      "x": "క్ష"
+    }; 
+
+    // =======================================================
+    // LAYER 3: TRUE VOWEL SIGNS / MATRAS
+    // =======================================================
+    var vowelSigns = {
+      "": "",   
+      "a": "", "A": "ా", "aa": "ా",
+      "i": "ి", "I": "ీ", "ii": "ీ", "ee": "ీ",
+      "u": "ు", "U": "ూ", "uu": "ూ",
+      "e": "ె", "E": "ే", "ai": "ై", 
+      "o": "ొ", "O": "ో", "au": "ౌ",
+      "R": "ృ"  
+    };
+
+    var virama = "్";
+
+    // =======================================================
+    // LAYER 4: EXTRACT CONSONANTS AND TRAILING VOWELS
+    // =======================================================
+    var match = syl.match(/^([kKgGchCjJTtDdnNpPBbmMyYrlLvwsShxr]+)(aa|ii|uu|ai|au|[aeiouAEIOUR]*)[M]?$/) || syl.match(/^([kKgGchCjJTtDdnNpPBbmMyYrlLvwsShxr]+)$/);
+    if (!match) return syl; 
+
+    var rawConsonants = match[1]; 
+    var rawVowel = match[2];      
+
+    // =======================================================
+    // LAYER 5: PERFECT CONJUNCT & TERMINAL SEPARATION ENGINE
+    // =======================================================
+    var i = 0;
+    var consonantBases = [];
+
+    // Phase A: Parse out all components from the cluster cleanly first
+    while (i < rawConsonants.length) {
+      var char2 = rawConsonants.substring(i, i + 2);
+      var char1 = rawConsonants.substring(i, i + 1);
+
+      if (consonants[char2]) {
+        consonantBases.push(consonants[char2]);
+        i += 2;
+      } else if (consonants[char1]) {
+        consonantBases.push(consonants[char1]);
+        i += 1;
+      } else {
+        consonantBases.push(char1);
+        i += 1;
+      }
+    }
+
+    var result = "";
+    if (consonantBases.length > 0) {
+      // 1. Core Primary Base Consonant character output
+      result += consonantBases[0];
+
+      // 2. Are there multiple consonants grouped together? (e.g. "sh-r", "l-l")
+      if (consonantBases.length > 1) {
+        // Loop over trailing characters and turn them into sub-vattulu via ahead-positioned Halant/Viramas
+        for (var b = 1; b < consonantBases.length; b++) {
+          result += virama + consonantBases[b];
+        }
+        // Apply vowel sign cleanly behind the completed cluster block
+        if (rawVowel !== "" && vowelSigns[rawVowel] !== undefined) {
+          result += vowelSigns[rawVowel];
+        } else if (rawVowel === "") {
+          // If complex cluster has absolutely no trailing vowel sound, clamp with a single final seal
+          result += virama;
+        }
+      } 
+      // 3. Otherwise, it's a completely single, independent base consonant (e.g. "t", "l")
+      else {
+        if (rawVowel !== "" && vowelSigns[rawVowel] !== undefined) {
+          result += vowelSigns[rawVowel];
+        } else {
+          // Safe terminal hanging closure rule: append one simple trailing virama (like the 'l' in Atul -> ల్)
+          result += virama;
+        }
+      }
+    }
+
+    var isMidWordNasal = syl.length > 1 && (syl.endsWith("M") || syl.endsWith("n") || syl.endsWith("m"));
+    return result + (isMidWordNasal ? "ం" : "");  
+  }
+
+</script>
+</body>
