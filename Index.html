@@ -7,6 +7,12 @@
   <title>Swaralipi Matrix</title>
   <meta name="description" content="Explore an interactive Swaralipi Raga repository and sheet music archive. Search, filter, and practice Hindustani/Carnatic Classical, Bhajans, and compositions with dynamic Taala notation Matrix layouts.">
 
+  <!-- PWA Linking Parameters -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#b91c1c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <base target="_top">
 <style>
   body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 25px; background: #fafafa; color: #1e293b; }
@@ -375,6 +381,30 @@
   window.globalRepositoryDirectory = []; // Unified local memory cache directory list
 
   // ===========================================================================
+  // 1. DUAL-COMPATIBLE ENVIRONMENT ROUTER & PWA REGISTRATION
+  // ===========================================================================
+  // Detects if the app is running on a standalone web domain (Netlify) vs Google sandboxed iframes
+  var isStandaloneWeb = (window.location.hostname !== "script.google.com" && 
+                         window.location.hostname !== "script.googleusercontent.com");
+
+  if (isStandaloneWeb) {
+    // Inject PWA Manifest linking properties dynamically only when running on Netlify
+    var manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = '/manifest.json';
+    document.head.appendChild(manifestLink);
+
+    // Register Service Worker smoothly
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(reg) { console.log('Service Worker Registered Successfully!', reg.scope); })
+          .catch(function(err) { console.error('Service Worker Registration Failed:', err); });
+      });
+    }
+  }
+
+  // ===========================================================================
   // 2. CORE STANDALONE LIFECYCLE BOOT LOOPS
   // ===========================================================================
   window.addEventListener("DOMContentLoaded", function() {
@@ -400,24 +430,22 @@
     // 5. ACTIVATE THE DETACHED DATA PIPELINE PRELOADER
     bootStandaloneAppEngine();
     
-  //    console.log("=== PHONETIC TRANSLATION ENGINE DEBUG RUN ===");
-  //    
-  //    // Test input target word
-  //    var testWord = "beats"; 
-  //    
-  //    // Target parameters aligned with your function declaration: (textStr, targetLang, scriptOffset)
-  //    var debugOutput = translateContinuousText(testWord, "telugu", 0);
-  //    
-  //    console.log("Input Word:  " + testWord);
-  //    console.log("Output Raw:  " + debugOutput);
-  //    console.log("Syllable Character Codes:");
-  //    for (var i = 0; i < debugOutput.length; i++) {
-  //       console.log("Pos " + i + ": " + debugOutput.charAt(i) + " (Code: " + debugOutput.charCodeAt(i) + ")");
-  //    }
-  //   
-  //    console.log("=============================================");
-
-});
+    // =========================================================================
+    // PHONETIC TRANSLATION ENGINE DEBUG RUN (Commented out for production stability)
+    // =========================================================================
+    /*
+    console.log("=== PHONETIC TRANSLATION ENGINE DEBUG RUN ===");
+    var testWord = "beats"; 
+    var debugOutput = translateContinuousText(testWord, "telugu", 0);
+    console.log("Input Word:  " + testWord);
+    console.log("Output Raw:  " + debugOutput);
+    console.log("Syllable Character Codes:");
+    for (var i = 0; i < debugOutput.length; i++) {
+       console.log("Pos " + i + ": " + debugOutput.charAt(i) + " (Code: " + debugOutput.charCodeAt(i) + ")");
+    }
+    console.log("=============================================");
+    */
+  });
 
 function bootStandaloneAppEngine() {
   var catSelect = document.getElementById("categoryDropdown") || document.getElementById("categorySelect");
@@ -477,7 +505,7 @@ function bootStandaloneAppEngine() {
         catSelect.appendChild(opt);
       });
       
-      // ✅ CHANGED: Neutralized startup focus so it sits on the instructions placeholder
+      // Neutralized startup focus so it sits on the instructions placeholder
       catSelect.value = "";
       syncSongDropdownByCategory("");
     }
@@ -529,42 +557,47 @@ function bootStandaloneAppEngine() {
     }
   }
 
-  // B. DYNAMIC RUNTIME ENVIRONMENT SELECTOR WITH TIMEOUT HARD HANDSHAKE FALLBACKS
-  let initialLoadFlag = false;
-
-  if (typeof google !== "undefined" && google.script && google.script.run) {
-    google.script.run
-      .withSuccessHandler(function(response) {
-        if (response && response.length > 0 && !initialLoadFlag) {
-          initialLoadFlag = true;
-          processDirectoryData(response);
+  // ===========================================================================
+  // B. RELIABLE DETERMINISTIC ENVIRONMENT DATA EXECUTION PIPELINE
+  // ===========================================================================
+  // Path A: Running standalone on Netlify as a mobile PWA
+  if (isStandaloneWeb) {
+    console.log("🚀 PWA Mode Active: Dispatching instant API HTTPS query line...");
+    
+    // Appends "?action=getDirectory" exactly as your backup loop query demands
+    fetch(WEB_API_URL + "?action=getDirectory")
+      .then(function(res) { return res.json(); })
+      .then(function(backupData) {
+        if (backupData && Array.isArray(backupData)) {
+          processDirectoryData(backupData);
         }
       })
-      .withFailureHandler(function(err) {
-        console.warn("Google native bridge failed. Routing to API endpoint...", err);
-      })
-      .buildCompleteGlobalDirectory();
-  }
-
-  // Safe Timeout Fallback Route: If Google Server takes longer than 1.2 seconds, query your Web API URL macro directly
-  setTimeout(function() {
-    if (!initialLoadFlag) {
-      console.log("⚠️ Bridge delayed. Dispatching backup API network request...");
-      
-      fetch(WEB_API_URL + "?action=getDirectory")
-        .then(function(res) { return res.json(); })
-        .then(function(backupData) {
-          if (backupData && Array.isArray(backupData) && !initialLoadFlag) {
-            initialLoadFlag = true;
-            processDirectoryData(backupData);
+      .catch(function(err) {
+        console.error("Critical Netlify data synchronization failure:", err);
+        if (catSelect) catSelect.innerHTML = "<option>Error loading database</option>";
+      });
+  } 
+  
+  // Path B: Running inside the native Google Apps Script workspace test environment
+  else {
+    console.log("🔒 Google Sandbox Active: Routing to local script runtime bridge...");
+    
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response) {
+            // If the script server drops a string instead of an array object, parse it cleanly
+            var parsedResponse = typeof response === 'string' ? JSON.parse(response) : response;
+            processDirectoryData(parsedResponse);
           }
         })
-        .catch(function(err) {
-          console.error("Critical connection failure across all data routes:", err);
+        .withFailureHandler(function(err) {
+          console.error("Google native runner threw execution failure:", err);
           if (catSelect) catSelect.innerHTML = "<option>Error loading database</option>";
-        });
+        })
+        .buildCompleteGlobalDirectory(); // Successfully matches your backend Code.gs function name
     }
-  }, 1200);
+  }
 }
 
   // ===========================================================================
