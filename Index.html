@@ -4,8 +4,8 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Swaralipi Matrix</title>
-  <meta name="description" content="Explore an interactive Swaralipi Raga repository and sheet music archive. Search, filter, and practice Hindustani/Carnatic Classical, Bhajans, and compositions with dynamic Taala notation Matrix layouts.">
+  <title>Swarajathi Matrix</title>
+  <meta name="description" content="Explore an interactive Swarajathi repository and sheet music archive. Search, filter, and practice Hindustani/Carnatic Classical, Bhajans, and compositions with dynamic Taala notation Matrix layouts.">
 
   <!-- PWA Linking Parameters -->
   <link rel="manifest" href="/manifest.json">
@@ -284,7 +284,7 @@
 
 <body>
 <div class="top-bar">
-    <div class="project-app-title">Swaralipi Matrix</div>
+    <div class="project-app-title">Swarajathi Matrix</div>
 
     <div class="search-input-wrapper">
       <input type="text" id="songSearchInput" list="songSuggestionsList" placeholder="🔍 Search song name..." autocomplete="off">
@@ -314,7 +314,7 @@
       </select>
     </div>
 
-    <!-- Swaralipi Matrix Notation Tuning Controls Container -->
+    <!-- Swarajathi Matrix Notation Tuning Controls Container -->
     <div class="control-item-wrapper" style="display: inline-flex; align-items: center; gap: 12px;">
   
       <!-- 1. Primary System Selector Toggle -->
@@ -614,7 +614,7 @@ function bootStandaloneAppEngine() {
         "<style>" +
           "@keyframes seoPulse { 0% { opacity: 0.4; } 50% { opacity: 0.9; } 100% { opacity: 0.4; } }" +
         "</style>" +
-        "<span>Loading selected composition into Swaralipi matrix layout...</span>" +
+        "<span>Loading selected composition into Swarajathi matrix layout...</span>" +
       "</div>";
     }
     
@@ -932,12 +932,12 @@ function bootStandaloneAppEngine() {
     }
 
     window.currentSongData = targetData;
-    renderSwaralipiGrid();
+    renderSwarajathiGrid();
   }
 
   function handleLanguageDropdownChange(newLang) {
     window.activeLanguage = newLang ? newLang.toLowerCase() : "telugu";
-    renderSwaralipiGrid(); // Dynamic client-side redraw in memory without server latency!
+    renderSwarajathiGrid(); // Dynamic client-side redraw in memory without server latency!
   }
 
   function handleNotationSystemChange(systemMode) {
@@ -949,18 +949,18 @@ function bootStandaloneAppEngine() {
     } else {
       scaleWrapper.style.display = "none";
     }
-    renderSwaralipiGrid(); // Toggles Sargam vs. Piano notes instantly in browser layout!
+    renderSwarajathiGrid(); // Toggles Sargam vs. Piano notes instantly in browser layout!
   }
 
   function handleScaleDropdownChange(newScale) {
     window.selectedScale = newScale;
-    renderSwaralipiGrid(); // Transposes pitches instantly in browser memory loops!
+    renderSwarajathiGrid(); // Transposes pitches instantly in browser memory loops!
   }
 
   // ===========================================================================
   // 8. THE MAIN FRONTEND MATRIX CELL RENDER LOOPS
   // ===========================================================================
-function renderSwaralipiGrid() {
+function renderSwarajathiGrid() {
   if (!window.currentSongData) return;
 
   const data = window.currentSongData;
