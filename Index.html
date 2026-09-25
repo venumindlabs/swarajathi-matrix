@@ -931,6 +931,32 @@ function bootStandaloneAppEngine() {
   // 7. THE DATA INGESTION GATEWAY & TUNING CONFIGURATION CONTROL HANDLERS
   // ===========================================================================
   function handleSongLoadingSuccess(payload) {
+
+  // ===========================================================================
+  // EMERGENCY NETLIFY RENDERER DIAGNOSTIC SHIELD
+  // ===========================================================================
+  console.log("=== DIAGNOSTIC RUN: DATA RECEIVED BY RENDERER ===", data);
+  
+  var debugCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+  
+  if (window.location.hostname !== "://google.com" && window.location.hostname !== "://googleusercontent.com") {
+    // If the data payload object contains an error message forwarded from your server's try/catch block
+    if (data && data.error) {
+      if (debugCanvas) {
+        debugCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Server Execution Error: " + data.error + "</p>";
+      }
+      return;
+    }
+    
+    // Check if the data structure arrived as an unexpected format type
+    if (!data) {
+      if (debugCanvas) {
+        debugCanvas.innerHTML = "<p style='color:#f59e0b; font-weight:bold; text-align:center;'>Warning: Received empty data payload object from server.</p>";
+      }
+      return;
+    }
+  }
+
     let targetData = payload;
 
     if (typeof payload === "string") {
