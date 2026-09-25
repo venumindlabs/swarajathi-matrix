@@ -647,7 +647,14 @@ function bootStandaloneAppEngine() {
           console.error("Network synchronization fault loading notation cells:", err);
           var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
           if (errCanvas) {
-            errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+            // ===================================================================
+            // ⚠️ THE DYNAMIC EXPOSURE ROW: PRINTS THE REAL CRASHING LINE DETAILS
+            // ===================================================================
+            errCanvas.innerHTML = 
+              "<div style='padding: 15px; border: 1px solid #ef4444; background: #fef2f2; color: #ef4444; font-family: monospace; border-radius:6px; text-align:center; font-weight:bold;'>" +
+                "Client Execution Error: " + err.message + 
+              "</div>";
+            // ===================================================================
           }
         });
     } 
@@ -656,22 +663,50 @@ function bootStandaloneAppEngine() {
     else {
       console.log("🔒 Google Sandbox Active: Routing to native server execution bridge...");
       
+      var safeLang = cleanLang || "english";
+      var safeFormat = "json";
+      
       if (typeof google !== "undefined" && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function(response) {
+            console.log("Raw Response received:", response);
+            
+            // Catch any unexpected null payloads before parsing loops begin
+            if (!response) {
+              var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+              if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; text-align:center;'>Error: Server dropped a completely empty response package.</p>";
+              return;
+            }
+            
             var parsedResponse = typeof response === 'string' ? JSON.parse(response) : response;
             handleSongLoadingSuccess(parsedResponse);
           })
+          
+          // ===================================================================
+          // ⚠️ THE ABSOLUTE DIAGNOSTIC CATCH BLOCK FOR GOOGLE SIDE FAULTS
+          // ===================================================================
           .withFailureHandler(function(err) {
-            console.error("Google environment grid rendering fault:", err);
+            console.error("CRITICAL GOOGLE BRIDGE FAILURE:", err);
+            
             var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
-            if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+            if (errCanvas) {
+              // This will print the literal system code error message directly onto your page layout!
+              errCanvas.innerHTML = 
+                "<div style='padding: 20px; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; text-align: center; color: #991b1b; font-family: monospace; font-size: 13px; line-height: 1.6;'>" +
+                  "<strong style='font-size: 14px; display: block; margin-bottom: 8px;'>🚨 Native Google Engine Exception:</strong>" +
+                  "Message: " + (err.message || err.toString()) + "<br>" +
+                  (err.name ? "Type: " + err.name + "<br>" : "") +
+                  "Suggestions: Check the Google Script Executions log for line crashes." +
+                "</div>";
+            }
           })
-          .generatePublicGrid(cleanLang, songName, category, "json"); // Matches your Code.gs function name
+          // ===================================================================
+          
+          .generatePublicGrid(safeLang, songName, category, safeFormat);
       }
     }
   }
-  
+
   // ===========================================================================
   // 4. REAL-TIME OMNI GLOBAL SEARCH ENGINE ENGINE LOGIC
   // ===========================================================================
@@ -930,59 +965,61 @@ function bootStandaloneAppEngine() {
   // ===========================================================================
   // 7. THE DATA INGESTION GATEWAY & TUNING CONFIGURATION CONTROL HANDLERS
   // ===========================================================================
-  function handleSongLoadingSuccess(payload) {
+function handleSongLoadingSuccess(payload) {
 
   // ===========================================================================
-  // EMERGENCY NETLIFY RENDERER DIAGNOSTIC SHIELD
+  // FIXED NETLIFY RENDERER DIAGNOSTIC SHIELD
   // ===========================================================================
-  console.log("=== DIAGNOSTIC RUN: DATA RECEIVED BY RENDERER ===", data);
+  // Swapped out the uninstantiated variable 'data' for your valid signature parameter 'payload'
+  console.log("=== DIAGNOSTIC RUN: DATA RECEIVED BY RENDERER ===", payload);
   
   var debugCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
   
-  if (window.location.hostname !== "://google.com" && window.location.hostname !== "://googleusercontent.com") {
-    // If the data payload object contains an error message forwarded from your server's try/catch block
-    if (data && data.error) {
+  if (window.location.hostname !== "script.google.com" && window.location.hostname !== "script.googleusercontent.com") {
+    // Check if the payload object contains an error message forwarded from your server's try/catch block
+    if (payload && payload.error) {
       if (debugCanvas) {
-        debugCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Server Execution Error: " + data.error + "</p>";
+        debugCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Server Execution Error: " + payload.error + "</p>";
       }
       return;
     }
     
     // Check if the data structure arrived as an unexpected format type
-    if (!data) {
+    if (!payload) {
       if (debugCanvas) {
         debugCanvas.innerHTML = "<p style='color:#f59e0b; font-weight:bold; text-align:center;'>Warning: Received empty data payload object from server.</p>";
       }
       return;
     }
   }
+  // ===========================================================================
 
-    let targetData = payload;
+  let targetData = payload;
 
-    if (typeof payload === "string") {
-      try {
-        targetData = JSON.parse(payload);
-      } catch (e) {
-        console.error("Critical JSON compilation fault:", e);
-        var errCanvas1 = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
-        if (errCanvas1) {
-          errCanvas1.innerHTML = `<p style="color:#ef4444; font-weight:bold; text-align:center;">Error parsing sheet data packet.</p>`;
-        }
-        return;
-      }
-    }
-
-    if (!targetData || targetData.success === false) {
-      var errCanvas2 = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
-      if (errCanvas2) {
-        errCanvas2.innerHTML = `<p style="color:#ef4444; font-weight:bold; text-align:center;">Error: ${targetData ? targetData.error : "Failed connection layout"}</p>`;
+  if (typeof payload === "string") {
+    try {
+      targetData = JSON.parse(payload);
+    } catch (e) {
+      console.error("Critical JSON compilation fault:", e);
+      var errCanvas1 = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+      if (errCanvas1) {
+        errCanvas1.innerHTML = `<p style="color:#ef4444; font-weight:bold; text-align:center;">Error parsing sheet data packet.</p>`;
       }
       return;
     }
-
-    window.currentSongData = targetData;
-    renderSwarajathiGrid();
   }
+
+  if (!targetData || targetData.success === false) {
+    var errCanvas2 = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+    if (errCanvas2) {
+      errCanvas2.innerHTML = `<p style="color:#ef4444; font-weight:bold; text-align:center;">Error: ${targetData ? targetData.error : "Failed connection layout"}</p>`;
+    }
+    return;
+  }
+
+  window.currentSongData = targetData;
+  renderSwarajathiGrid();
+}
 
   function handleLanguageDropdownChange(newLang) {
     window.activeLanguage = newLang ? newLang.toLowerCase() : "telugu";
