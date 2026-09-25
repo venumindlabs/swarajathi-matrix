@@ -601,7 +601,7 @@ function bootStandaloneAppEngine() {
 }
 
   // ===========================================================================
-  // 3. DATA INGESTION GATEWAY & HIGH-SPEED TRANSITION HANDLERS
+  // 3. DATA INGESTION GATEWAY & HIGH-SPEED TRANSITION HANDLERS (OPTIMIZED)
   // ===========================================================================
   function executeNotationGridFetch(category, songName) {
     if (!songName || songName === "" || songName.startsWith("Loading")) return;
@@ -621,34 +621,57 @@ function bootStandaloneAppEngine() {
     var selectedMode = document.getElementById("langDropdown") ? document.getElementById("langDropdown").value : "Telugu";
     var cleanLang = selectedMode ? selectedMode.toLowerCase() : "english";
 
-    // A. ENVIRONMENT ROUTER WITH DUAL PAYLOAD VALIDATION PIPELINES
-    if (typeof google !== "undefined" && google.script && google.script.run) {
-      // NATIVE GOOGLE INTERFACE HIGHWAY: Requests pure data payloads instead of legacy server HTML lines
-      google.script.run
-        .withSuccessHandler(function(response) {
-          handleSongLoadingSuccess(response);
-        })
-        .withFailureHandler(function(err) {
-          console.error("Google environment grid rendering fault:", err);
-          var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
-          if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
-        })
-        .generatePublicGrid(cleanLang, songName, category, "json");
-    } else {
-      // NETLIFY API FETCH FALLBACK: Queries external web API macro route parameters
-      fetch(WEB_API_URL + "?action=getNotationMatrix&category=" + encodeURIComponent(category) + "&song=" + encodeURIComponent(songName) + "&mode=" + encodeURIComponent(cleanLang) + "&format=json")
+    // A. DETERMINISTIC ENVIRONMENT ROUTER 
+    // PATH A: Running standalone on Netlify as a mobile PWA PWA
+    if (isStandaloneWeb) {
+      console.log("🚀 Netlify Pipeline Active: Requesting individual notation cells...");
+      
+      // Builds a clean, reliable, URL-encoded macro string layout pipeline over HTTPS
+      var targetQueryUrl = WEB_API_URL + 
+                           "?action=getNotationMatrix" + 
+                           "&category=" + encodeURIComponent(category) + 
+                           "&song=" + encodeURIComponent(songName) + 
+                           "&mode=" + encodeURIComponent(cleanLang) + 
+                           "&format=json";
+
+      fetch(targetQueryUrl)
         .then(function(response) { return response.json(); })
         .then(function(responseObj) {
-          handleSongLoadingSuccess(responseObj);
+          console.log("Notation database payload resolved over HTTPS successfully:", responseObj);
+          
+          // Unpacks string data layout targets safely if your web app server returns a raw string package
+          var parsedObj = typeof responseObj === 'string' ? JSON.parse(responseObj) : responseObj;
+          handleSongLoadingSuccess(parsedObj);
         })
         .catch(function(err) {
           console.error("Network synchronization fault loading notation cells:", err);
           var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
-          if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+          if (errCanvas) {
+            errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+          }
         });
+    } 
+    
+    // PATH B: Running inside the native Google Apps Script workspace test environment
+    else {
+      console.log("🔒 Google Sandbox Active: Routing to native server execution bridge...");
+      
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            var parsedResponse = typeof response === 'string' ? JSON.parse(response) : response;
+            handleSongLoadingSuccess(parsedResponse);
+          })
+          .withFailureHandler(function(err) {
+            console.error("Google environment grid rendering fault:", err);
+            var errCanvas = document.getElementById("matrixGridContainer") || document.getElementById("notationCanvas");
+            if (errCanvas) errCanvas.innerHTML = "<p style='color:#ef4444; font-weight:bold; text-align:center;'>Failed to load music sheet from repository matrix.</p>";
+          })
+          .generatePublicGrid(cleanLang, songName, category, "json"); // Matches your Code.gs function name
+      }
     }
   }
-
+  
   // ===========================================================================
   // 4. REAL-TIME OMNI GLOBAL SEARCH ENGINE ENGINE LOGIC
   // ===========================================================================
